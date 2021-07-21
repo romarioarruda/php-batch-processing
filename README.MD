@@ -5,7 +5,7 @@
 ```
 Search a coupon and if not exists save it on file cupons/chosen_name_file.txt
 
-$ php run.php
+$ php index.php
 ```
 
 **Run a search for duplicate coupons on a chosen file**:
