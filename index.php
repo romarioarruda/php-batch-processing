@@ -11,27 +11,26 @@ if(!$configEnv) exit('Variáveis de ambiente não definidas.');
 
 $readFile = readFilePerLine($fileName);
 
-$appKey = $appKey;
-$appToken = $appToken;
-
 foreach($readFile as $key => $line) {
   $lineKey = ($key+1);
   $coupon = trim($line);
+  echo "line: $lineKey - cupon: $coupon\n";
+  $coupon = str_replace('&', '%26', $coupon);
 
   $payload = [
     $configEnv['APP_ACCOUNT'],
     $configEnv['APP_KEY'],
     $configEnv['APP_TOKEN'],
     $configEnv['APP_ENTITY_NAME'],
-    ["coupon" => $coupon, "ativo" => true]
+    "coupon=$coupon"
   ];
 
-  $response = MasterData::saveDocument($payload);
+  $response = MasterData::searchDocument($payload);
 
-  if(!empty($response)) {
-    echo "cupon $coupon salvo n bd.\n";
-  } else {
-    echo "cupon $coupon n foi salvo n bd.\n";
+  if(empty($response)) {
+    $coupon = str_replace('%26', '&', $coupon);
+
+    echo "$coupon não existe no BD.\n";
     fileGenerator("pendentes_$fileName", $coupon);
   }
 }

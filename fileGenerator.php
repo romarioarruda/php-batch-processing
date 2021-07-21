@@ -2,7 +2,7 @@
 
 function fileGenerator($fileName, $line) {
     echo "Escrevendo no arquivo $fileName\n";
-    $file = fopen("cupons/$fileName", 'a');
+    $file = fopen("$fileName", 'a');
 
     fwrite($file, "$line\n");
 
