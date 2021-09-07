@@ -1,4 +1,5 @@
 <?php
+namespace App\Entities;
 
 class MasterData
 {
@@ -32,9 +33,7 @@ class MasterData
 
     curl_close($curl);
 
-    if($err) {
-      throw new Exception('Request error: '.$err);
-    }
+    if($err) throw new \Exception('Request error: '.$err);
 
     return $response;
   }
@@ -70,9 +69,7 @@ class MasterData
 
     curl_close($curl);
         
-    if($err) {
-      throw new Exception('Request error: '.$err);
-    }
+    if($err) throw new \Exception('Request error: '.$err);
 
     return $response;
   }
