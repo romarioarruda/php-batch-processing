@@ -8,3 +8,4 @@ $configEnv = parse_ini_file('env.ini');
 
 $coupon = new Coupon($configEnv, new FileSystem);
 $coupon->searchCoupon();
+// $coupon->saveCoupon();

@@ -1,17 +1,27 @@
 <?php
 namespace App\Services;
 
-use App\Entities\MasterData;
+use Predis\Client;
+use \Superbalist\PubSub\Redis\RedisPubSubAdapter;
 
 class Coupon
 {
     private $env;
     private $fs;
+    private $queue;
 
     public function __construct(array $configEnv, FileSystem $fs)
     {
         $this->env = $configEnv;
         $this->fs = $fs;
+
+        $client = new Client([
+            'host' => $configEnv['REDIS_HOST'],
+            'port' => $configEnv['REDIS_PORT'],
+            'read_write_timeout' => $configEnv['read_write_timeout'],
+        ]);
+
+        $this->queue = new RedisPubSubAdapter($client);
     }
 
     public function searchCoupon(): void
@@ -35,20 +45,8 @@ class Coupon
                 $this->env['APP_ENTITY_NAME'],
                 "coupon=$coupon"
             ];
-            
-            try {
-                $response = MasterData::searchDocument($payload);
 
-                if(empty($response)) {
-                    $coupon = str_replace('%26', '&', $coupon);
-                    echo "$coupon não existe no BD.\n";
-                    $this->fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
-                }
-            } catch(\Exception $err) {
-                $coupon = str_replace('%26', '&', $coupon);
-                echo "Falha na request, salvando como pendente.\n";
-                $this->fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
-            }
+            $this->queue->publish('WorkerSearchCoupon', $payload);
         }
     }
 
@@ -72,17 +70,7 @@ class Coupon
                 ["coupon" => $coupon, "ativo" => true]
             ];
 
-            try {
-                $response = MasterData::saveDocument($payload);
-
-                if(empty($response)) {
-                    echo "cupon $coupon n foi salvo n bd.\n";
-                    $this->fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
-                }
-            } catch(\Exception $err) {
-                echo "Falha na request, salvando como pendente.\n";
-                $this->fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
-            }
+            $this->queue->publish('WorkerSaveCoupon', $payload);
         }
     }
 }
