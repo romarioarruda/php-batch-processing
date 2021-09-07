@@ -1,5 +1,5 @@
 {
-    "name": "romarioarruda/vtex-batch-processing",
+    "name": "romarioarruda/php-batch-processing",
     "require": {
         "predis/predis": "^1.1",
         "superbalist/php-pubsub-redis": "^2.0"
