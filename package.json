@@ -1,7 +1,7 @@
 {
-  "name": "vtex-batch-processing",
+  "name": "php-batch-processing",
   "version": "1.0.0",  
-  "description": "Executing batch processing at vtex",
+  "description": "Executing batch processing",
   "scripts": {
     "prepare": "husky install"
   },
@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/romarioarruda/vtex-batch-processing.git"
+    "url": "git+https://github.com/romarioarruda/php-batch-processing.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/romarioarruda/vtex-batch-processing/issues"
+    "url": "https://github.com/romarioarruda/php-batch-processing/issues"
   },
-  "homepage": "https://github.com/romarioarruda/vtex-batch-processing#readme",
+  "homepage": "https://github.com/romarioarruda/php-batch-processing#readme",
   "devDependencies": {
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
