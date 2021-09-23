@@ -1,27 +1,31 @@
 <?php
 require_once 'vendor/autoload.php';
 
-use Predis\Client;
-use \Superbalist\PubSub\Redis\RedisPubSubAdapter;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
 use App\Entities\MasterData;
 use App\Services\FileSystem;
 
 $configEnv = parse_ini_file('env.ini');
 
-$client = new Client([
-    'host' => $configEnv['REDIS_HOST'],
-    'port' => $configEnv['REDIS_PORT'],
-    'read_write_timeout' => $configEnv['read_write_timeout'],
-]);
+$connection = new AMQPStreamConnection(
+    $configEnv['RABBITMQ_HOST'],
+    $configEnv['RABBITMQ_PORT'],
+    $configEnv['RABBITMQ_USER'],
+    $configEnv['RABBITMQ_PASS']
+);
 
-$worker = new RedisPubSubAdapter($client);
+$channel = $connection->channel();
 
-$fs = new FileSystem;
+$channel->queue_declare('WorkerSaveCoupon');
 
-$worker->subscribe('WorkerSaveCoupon', function($payload) use ($fs) {
+$callback = function($msg) {
+    $payload = json_decode($msg->body);
+
     $coupon = $payload[4]['coupon'];
 
     $path = __DIR__ . "/../";
+
+    $fs = new FileSystem;
 
     try {
         $response = MasterData::saveDocument($payload);
@@ -36,4 +40,14 @@ $worker->subscribe('WorkerSaveCoupon', function($payload) use ($fs) {
 
         $fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
     }
-});
+};
+
+$channel->basic_consume('WorkerSaveCoupon', '', false, true, false, false, $callback);
+
+while(count($channel->callbacks)) {
+    $channel->wait();
+}
+ 
+$channel->close();
+$connection->close();
+echo "\nWorkerSaveCoupon finalizado.\n";

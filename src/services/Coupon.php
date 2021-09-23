@@ -1,13 +1,15 @@
 <?php
 namespace App\Services;
 
-use Predis\Client;
-use \Superbalist\PubSub\Redis\RedisPubSubAdapter;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+
 
 class Coupon
 {
     private $env;
     private $fs;
+    private $queueConn;
     private $queue;
 
     public function __construct(array $configEnv, FileSystem $fs)
@@ -15,13 +17,14 @@ class Coupon
         $this->env = $configEnv;
         $this->fs = $fs;
 
-        $client = new Client([
-            'host' => $configEnv['REDIS_HOST'],
-            'port' => $configEnv['REDIS_PORT'],
-            'read_write_timeout' => $configEnv['read_write_timeout'],
-        ]);
+        $this->queueConn = new AMQPStreamConnection(
+            $configEnv['RABBITMQ_HOST'],
+            $configEnv['RABBITMQ_PORT'],
+            $configEnv['RABBITMQ_USER'],
+            $configEnv['RABBITMQ_PASS']
+        );
 
-        $this->queue = new RedisPubSubAdapter($client);
+        $this->queue = $this->queueConn->channel();
     }
 
     public function searchCoupon(): void
@@ -38,15 +41,19 @@ class Coupon
 
             $coupon = str_replace('&', '%26', $coupon);
       
-            $payload = [
+            $payload = json_encode([
                 $this->env['APP_ACCOUNT'],
                 $this->env['APP_KEY'],
                 $this->env['APP_TOKEN'],
                 $this->env['APP_ENTITY_NAME'],
                 "coupon=$coupon"
-            ];
+            ]);
 
-            $this->queue->publish('WorkerSearchCoupon', $payload);
+            $this->queue->queue_declare('WorkerSearchCoupon');
+
+            $msg = new AMQPMessage($payload);
+
+            $this->queue->basic_publish($msg, '', 'WorkerSearchCoupon');
         }
     }
 
@@ -62,15 +69,26 @@ class Coupon
 
             echo "line: $lineKey - cupon: $coupon\n";
 
-            $payload = [
+            $payload = json_encode([
                 $this->env['APP_ACCOUNT'],
                 $this->env['APP_KEY'],
                 $this->env['APP_TOKEN'],
                 $this->env['APP_ENTITY_NAME'],
                 ["coupon" => $coupon, "ativo" => true]
-            ];
+            ]);
 
-            $this->queue->publish('WorkerSaveCoupon', $payload);
+            $this->queue->queue_declare('WorkerSaveCoupon');
+
+            $msg = new AMQPMessage($payload);
+
+            $this->queue->basic_publish($msg, '', 'WorkerSaveCoupon');
         }
+    }
+
+    public function __destruct()
+    {
+        $this->queue->close();
+        $this->queueConn->close();
+        echo "\nMessage broker: conexão finalizada.\n";
     }
 }

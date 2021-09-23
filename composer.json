@@ -2,7 +2,8 @@
     "name": "romarioarruda/php-batch-processing",
     "require": {
         "predis/predis": "^1.1",
-        "superbalist/php-pubsub-redis": "^2.0"
+        "superbalist/php-pubsub-redis": "^2.0",
+        "php-amqplib/php-amqplib": "^2.6.1"
     },
     "autoload": {
         "psr-4": {
