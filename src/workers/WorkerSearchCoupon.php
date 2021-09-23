@@ -13,9 +13,10 @@ $connection = new AMQPStreamConnection(
     $configEnv['RABBITMQ_USER'],
     $configEnv['RABBITMQ_PASS']
 );
+
 $channel = $connection->channel();
 
-$channel->queue_declare('WorkerSearchCoupon');
+$channel->queue_declare('WorkerSearchCoupon', false, true, false, false);
 
 $callback = function($msg) {
     $payload = json_decode($msg->body);
@@ -42,14 +43,16 @@ $callback = function($msg) {
         $coupon = str_replace('%26', '&', $coupon);
         $fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
     }
+
+    $msg->ack();
 };
 
-$channel->basic_consume('WorkerSearchCoupon', '', false, true, false, false, $callback);
+$channel->basic_qos(null, 1, null);
+$channel->basic_consume('WorkerSearchCoupon', '', false, false, false, false, $callback);
 
-while(count($channel->callbacks)) {
+while($channel->is_open()) {
     $channel->wait();
 }
  
 $channel->close();
 $connection->close();
-echo "\nWorkerSearchCoupon finalizado.\n";

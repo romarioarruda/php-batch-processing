@@ -49,7 +49,7 @@ class Coupon
                 "coupon=$coupon"
             ]);
 
-            $this->queue->queue_declare('WorkerSearchCoupon');
+            $this->queue->queue_declare('WorkerSearchCoupon', false, true, false, false);
 
             $msg = new AMQPMessage($payload);
 
@@ -77,7 +77,7 @@ class Coupon
                 ["coupon" => $coupon, "ativo" => true]
             ]);
 
-            $this->queue->queue_declare('WorkerSaveCoupon');
+            $this->queue->queue_declare('WorkerSaveCoupon', false, true, false, false);
 
             $msg = new AMQPMessage($payload);
 

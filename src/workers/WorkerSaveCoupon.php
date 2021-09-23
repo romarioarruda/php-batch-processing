@@ -16,7 +16,7 @@ $connection = new AMQPStreamConnection(
 
 $channel = $connection->channel();
 
-$channel->queue_declare('WorkerSaveCoupon');
+$channel->queue_declare('WorkerSaveCoupon', false, true, false, false);
 
 $callback = function($msg) {
     $payload = json_decode($msg->body);
@@ -40,14 +40,16 @@ $callback = function($msg) {
 
         $fs->createFileSync($path."files/pendent_coupons.txt", $coupon);
     }
+
+    $msg->ack();
 };
 
-$channel->basic_consume('WorkerSaveCoupon', '', false, true, false, false, $callback);
+$channel->basic_qos(null, 1, null);
+$channel->basic_consume('WorkerSaveCoupon', '', false, false, false, false, $callback);
 
-while(count($channel->callbacks)) {
+while($channel->is_open()) {
     $channel->wait();
 }
  
 $channel->close();
 $connection->close();
-echo "\nWorkerSaveCoupon finalizado.\n";
