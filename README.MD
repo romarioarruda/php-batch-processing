@@ -1,34 +1,59 @@
+## Batch processing using php and queues in RabbitMQ
+
+<br>
+
 **Update dependencies**:
 
-* PHP
-  - `composer update`
+* **PHP**
+  
+  ```
+  composer update
+  ```
 
-* Node
-  - `npm install`
+* **Node**
+  ```
+  npm install
+  ```
 
-* RabbitMQ
-  - `docker container run --rm -d --hostname my-rabbit --name rabbitmq -p 8080:15672 -p 5672:5672 rabbitmq:management-alpin`
+* **RabbitMQ**
+  ```
+  docker container run --rm -d --hostname my-rabbit --name rabbitmq -p 8080:15672 -p 5672:5672 rabbitmq:management-alpin
+  ```
 
+<br>
 
 **Commit Pattern**:
 
-To run a new commit, exec only:
+*To run a new commit, execute only:*
 
-`git commit`
+```
+git commit
+```
 
+<br>
 
-**App exec**:
+**Run application**:
 
-* RabbitMQ Management
-  - `http://localhost:8080/#/`
+* **RabbitMQ Management**
+  ```
+  http://localhost:8080/#/
+  ```
 
-* Workers
-  - `php src/workers/WorkerSearchCoupon.php`
-  - `php src/workers/WorkerSaveCoupon.php`
+* **Workers**
+  ```
+  php src/workers/WorkerSearchCoupon.php
+  ```
+  
+  ```
+  php src/workers/WorkerSaveCoupon.php
+  ```
 
-* Main instance
-  - `php index.php`
+* **Service**
+  ```
+  php index.php
+  ```
 
+<br>
 
 #### Useful links
 
